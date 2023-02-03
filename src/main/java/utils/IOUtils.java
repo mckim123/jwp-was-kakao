@@ -2,6 +2,11 @@ package utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import webserver.HttpRequestLine;
+import webserver.MyHttpRequest;
 
 public class IOUtils {
     /**
@@ -16,5 +21,33 @@ public class IOUtils {
         char[] body = new char[contentLength];
         br.read(body, 0, contentLength);
         return String.copyValueOf(body);
+    }
+
+    public static MyHttpRequest parseHttpRequest(BufferedReader bufferedReader) throws IOException {
+        String line = bufferedReader.readLine();
+        HttpRequestLine httpRequestLine = new HttpRequestLine(line);
+        Map<String, String> headers = parseHttpHeaders(bufferedReader);
+        Object body = parserBody(bufferedReader);
+        return new MyHttpRequest(httpRequestLine, headers, body);
+    }
+
+    private static Object parserBody(BufferedReader bufferedReader) {
+        return bufferedReader.lines().collect(Collectors.joining("\n"));
+    }
+
+    private static Map<String, String> parseHttpHeaders(BufferedReader bufferedReader) throws IOException {
+        String line = bufferedReader.readLine();
+        Map<String, String> headers = new HashMap<>();
+        while (!isNullOrEmpty(line)) {
+            String[] tokens = line.split(":");
+            headers.put(tokens[0], tokens[1].trim());
+            line = bufferedReader.readLine();
+        }
+        return headers;
+    }
+
+
+    private static boolean isNullOrEmpty(String line) {
+        return line == null || "".equals(line);
     }
 }

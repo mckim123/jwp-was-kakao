@@ -6,13 +6,13 @@ import org.springframework.http.HttpMethod;
 public class MyHttpRequest {
     private final HttpRequestLine httpRequestLine;
     private final Map<String, String> headers;
-    private final Object body;
+    private final String body;
 
     public MyHttpRequest(HttpRequestLine httpRequestLine, Map<String, String> headers) {
         this(httpRequestLine, headers, null);
     }
 
-    public MyHttpRequest(HttpRequestLine httpRequestLine, Map<String, String> headers, Object body) {
+    public MyHttpRequest(HttpRequestLine httpRequestLine, Map<String, String> headers, String body) {
         this.httpRequestLine = httpRequestLine;
         this.headers = headers;
         this.body = body;
@@ -30,7 +30,7 @@ public class MyHttpRequest {
         return httpRequestLine.getQueryParameters();
     }
 
-    public Object getBody() {
+    public String getBody() {
         return body;
     }
 

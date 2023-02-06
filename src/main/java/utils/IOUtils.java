@@ -29,7 +29,8 @@ public class IOUtils {
         HttpRequestLine httpRequestLine = new HttpRequestLine(line);
         Map<String, String> headers = parseHttpHeaders(bufferedReader);
         if (headers.containsKey("Content-Length")) {
-            return new MyHttpRequest(httpRequestLine, headers, parseBody(bufferedReader));
+            int length = Integer.parseInt(headers.get("Content-Length"));
+            return new MyHttpRequest(httpRequestLine, headers, readData(bufferedReader, length));
         }
         return new MyHttpRequest(httpRequestLine, headers);
     }
@@ -44,18 +45,6 @@ public class IOUtils {
         }
         return headers;
     }
-
-    private static String parseBody(BufferedReader bufferedReader) throws IOException {
-        String line = bufferedReader.readLine();
-        StringBuffer sb = new StringBuffer();
-        while (line != null) {
-            sb.append(line).append("\n");
-            line = bufferedReader.readLine();
-        }
-        String body = sb.toString();
-        return body.substring(0, body.length()-1);
-    }
-
 
     private static boolean isNullOrEmpty(String line) {
         return line == null || "".equals(line);

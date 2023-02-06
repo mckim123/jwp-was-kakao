@@ -5,7 +5,6 @@ import static utils.IOUtils.parseHttpRequest;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import utils.FileIoUtils;
-import utils.IOUtils;
 
 public class RequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
@@ -37,11 +35,19 @@ public class RequestHandler implements Runnable {
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = "Hello world".getBytes();
+            String requestTarget = httpRequest.getRequestTarget();
+            String typeOfBodyContent = "text/html";
 
-            if (httpRequest.getRequestTarget().contains(".")) {
-                body = FileIoUtils.loadFileFromClasspath("./templates" + httpRequest.getRequestTarget());
+            if (requestTarget.contains(".")) {
+                try {
+                    body = FileIoUtils.loadFileFromClasspath("./templates" + requestTarget);
+                } catch (NullPointerException e) {
+                    body = FileIoUtils.loadFileFromClasspath("./static" + requestTarget);
+                }
+                String[] splitTarget = requestTarget.split("\\.");
+                typeOfBodyContent = "text/" + splitTarget[splitTarget.length - 1];
             }
-            response200Header(dos, body.length);
+            response200Header(dos, body.length, typeOfBodyContent);
             responseBody(dos, body);
 
         } catch (IOException e) {
@@ -55,10 +61,10 @@ public class RequestHandler implements Runnable {
         return line == null || "".equals(line);
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String typeOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n");
+            dos.writeBytes("Content-Type: " + typeOfBodyContent + ";charset=utf-8 \r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + " \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {

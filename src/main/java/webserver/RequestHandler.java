@@ -87,6 +87,13 @@ public class RequestHandler implements Runnable {
             );
             return new MyHttpResponse(HttpStatus.CREATED);
         }
+        if (HttpMethod.GET.equals(request.getHttpMethod()) && "/".equals(request.getRequestPath())) {
+            byte[] body = "Hello world".getBytes();
+            MyHttpResponse response = new MyHttpResponse(HttpStatus.OK, body);
+            response.setContentType("text/html");
+            response.setContentLength(body.length);
+            return response;
+        }
 
         if (HttpMethod.POST.equals(request.getHttpMethod()) && "/user/create".equals(request.getRequestPath())) {
             String body = request.getBody();
@@ -100,7 +107,9 @@ public class RequestHandler implements Runnable {
                             queryParameters.get("name"),
                             queryParameters.get("email"))
             );
-            return new MyHttpResponse(HttpStatus.CREATED);
+            MyHttpResponse response = new MyHttpResponse(HttpStatus.FOUND);
+            response.addHeader("Location", "/index.html");
+            return response;
         }
 
         throw new IllegalArgumentException();

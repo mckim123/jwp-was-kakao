@@ -1,7 +1,5 @@
 package webserver;
 
-import static utils.IOUtils.parseHttpRequest;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
@@ -32,15 +30,22 @@ public class RequestHandler implements Runnable {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             InputStreamReader inputStreamReader = new InputStreamReader(in);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            MyHttpRequest httpRequest = parseHttpRequest(bufferedReader);
+            MyHttpRequest httpRequest = IOUtils.parseHttpRequest(bufferedReader);
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = "Hello world".getBytes();
+            String typeOfBodyContent = "text/html";
+            String requestTarget = httpRequest.getRequestTarget();
 
-            if (httpRequest.getRequestTarget().contains(".")) {
-                body = FileIoUtils.loadFileFromClasspath("./templates" + httpRequest.getRequestTarget());
+            if (requestTarget.contains(".")) {
+                try {
+                    body = FileIoUtils.loadFileFromClasspath("./templates" + requestTarget);
+                } catch (NullPointerException e) {
+                    body = FileIoUtils.loadFileFromClasspath("./static" + requestTarget);
+                }
+                typeOfBodyContent = "text/" + requestTarget.split("\\.")[requestTarget.split("\\.").length-1];
             }
-            response200Header(dos, body.length);
+            response200Header(dos, body.length, typeOfBodyContent);
             responseBody(dos, body);
 
         } catch (IOException e) {
@@ -50,14 +55,10 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    private static boolean isNullOrEmpty(String line) {
-        return line == null || "".equals(line);
-    }
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String typeOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n");
+            dos.writeBytes("Content-Type: " + typeOfBodyContent + ";charset=utf-8 \r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + " \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {

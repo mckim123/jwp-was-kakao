@@ -27,12 +27,19 @@ public class IOUtils {
         String line = bufferedReader.readLine();
         HttpRequestLine httpRequestLine = new HttpRequestLine(line);
         Map<String, String> headers = parseHttpHeaders(bufferedReader);
-        Object body = parserBody(bufferedReader);
-        return new MyHttpRequest(httpRequestLine, headers, body);
+        if (headers.get("Content-Length") != null) {
+            Object body = parserBody(bufferedReader);
+            return new MyHttpRequest(httpRequestLine, headers, body);
+        }
+        return new MyHttpRequest(httpRequestLine, headers);
     }
 
-    private static Object parserBody(BufferedReader bufferedReader) {
-        return bufferedReader.lines().collect(Collectors.joining("\n"));
+    private static Object parserBody(BufferedReader bufferedReader) throws IOException {
+        try {
+            return bufferedReader.lines().collect(Collectors.joining("\n"));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static Map<String, String> parseHttpHeaders(BufferedReader bufferedReader) throws IOException {

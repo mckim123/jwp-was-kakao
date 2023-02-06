@@ -54,4 +54,5 @@ class RequestHandlerTest {
 
         assertThat(socket.output()).isEqualTo(expected);
     }
+
 }

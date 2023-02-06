@@ -26,6 +26,10 @@ public class MyHttpRequest {
         return headers;
     }
 
+    public Map<String, String> getQueryParameters() {
+        return httpRequestLine.getQueryParameters();
+    }
+
     public Object getBody() {
         return body;
     }
@@ -34,8 +38,8 @@ public class MyHttpRequest {
         return httpRequestLine.getHttpMethod();
     }
 
-    public String getRequestTarget() {
-        return httpRequestLine.getRequestTarget();
+    public String getRequestPath() {
+        return httpRequestLine.getRequestPath();
     }
 
     public String getHttpVersion() {

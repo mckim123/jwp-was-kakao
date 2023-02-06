@@ -1,10 +1,15 @@
 package webserver;
 
+import static utils.FileIoUtils.loadFileFromRequestTarget;
 import static utils.IOUtils.parseHttpRequest;
 
+import db.DataBase;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +18,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import utils.FileIoUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 
 public class RequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+
+    private static final Map<String, String> mimeType = new HashMap<>(){{
+        put("html", "text/html");
+        put("css", "text/css");
+        put("js", "text/javascript");
+        put("ico" ,"image/vnd.microsoft.icon");
+        put("png" ,"image/png");
+        put("woff", "application/x-font-woff");
+        put("woff2", "application/x-font-woff2");
+    }};
 
     private Socket connection;
 
@@ -34,22 +50,9 @@ public class RequestHandler implements Runnable {
             MyHttpRequest httpRequest = parseHttpRequest(bufferedReader);
 
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = "Hello world".getBytes();
-            String requestTarget = httpRequest.getRequestTarget();
-            String typeOfBodyContent = "text/html";
-
-            if (requestTarget.contains(".")) {
-                try {
-                    body = FileIoUtils.loadFileFromClasspath("./templates" + requestTarget);
-                } catch (NullPointerException e) {
-                    body = FileIoUtils.loadFileFromClasspath("./static" + requestTarget);
-                }
-                String[] splitTarget = requestTarget.split("\\.");
-                typeOfBodyContent = "text/" + splitTarget[splitTarget.length - 1];
-            }
-            response200Header(dos, body.length, typeOfBodyContent);
-            responseBody(dos, body);
-
+            
+            MyHttpResponse response = execute(httpRequest);
+            response.writeResponse(dos);
         } catch (IOException e) {
             logger.error(e.getMessage());
         } catch (URISyntaxException e) {
@@ -57,27 +60,41 @@ public class RequestHandler implements Runnable {
         }
     }
 
+
+    private MyHttpResponse execute(MyHttpRequest request) throws IOException, URISyntaxException{
+//        byte[] body = "Hello world".getBytes();
+//        String typeOfBodyContent = "text/html";
+        String requestTarget = request.getRequestPath();
+
+        if (isFileRequestTarget(requestTarget)) {
+            byte[] body = loadFileFromRequestTarget(requestTarget);
+            String[] splitTarget = requestTarget.split("\\.");
+            String typeOfBodyContent = mimeType.get(splitTarget[splitTarget.length - 1]);
+            MyHttpResponse response = new MyHttpResponse(HttpStatus.OK, body);
+            response.setContentType(typeOfBodyContent);
+            response.setContentLength(body.length);
+            return response;
+        }
+
+        if (HttpMethod.GET.equals(request.getHttpMethod()) && "/user/create".equals(request.getRequestPath())) {
+            Map<String, String> queryParameters = request.getQueryParameters();
+            DataBase.addUser(
+                    new User(queryParameters.get("userId"),
+                            queryParameters.get("password"),
+                            queryParameters.get("name"),
+                            queryParameters.get("email"))
+            );
+            return new MyHttpResponse(HttpStatus.CREATED);
+        }
+        throw new IllegalArgumentException();
+    }
+
+    private static boolean isFileRequestTarget(String requestTarget) {
+        return requestTarget.contains(".");
+    }
+
     private static boolean isNullOrEmpty(String line) {
         return line == null || "".equals(line);
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String typeOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: " + typeOfBodyContent + ";charset=utf-8 \r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + " \r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-    }
 }

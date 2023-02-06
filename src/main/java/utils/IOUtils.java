@@ -2,6 +2,7 @@ package utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.http.HttpHeaders;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,12 +28,10 @@ public class IOUtils {
         String line = bufferedReader.readLine();
         HttpRequestLine httpRequestLine = new HttpRequestLine(line);
         Map<String, String> headers = parseHttpHeaders(bufferedReader);
-        Object body = parserBody(bufferedReader);
-        return new MyHttpRequest(httpRequestLine, headers, body);
-    }
-
-    private static Object parserBody(BufferedReader bufferedReader) {
-        return bufferedReader.lines().collect(Collectors.joining("\n"));
+        if (headers.containsKey("Content-Length")) {
+            return new MyHttpRequest(httpRequestLine, headers, parseBody(bufferedReader));
+        }
+        return new MyHttpRequest(httpRequestLine, headers);
     }
 
     private static Map<String, String> parseHttpHeaders(BufferedReader bufferedReader) throws IOException {
@@ -44,6 +43,17 @@ public class IOUtils {
             line = bufferedReader.readLine();
         }
         return headers;
+    }
+
+    private static String parseBody(BufferedReader bufferedReader) throws IOException {
+        String line = bufferedReader.readLine();
+        StringBuffer sb = new StringBuffer();
+        while (line != null) {
+            sb.append(line).append("\n");
+            line = bufferedReader.readLine();
+        }
+        String body = sb.toString();
+        return body.substring(0, body.length()-1);
     }
 
 

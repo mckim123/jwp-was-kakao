@@ -35,7 +35,7 @@ public class MyHttpRequest {
     }
 
     public String getRequestTarget() {
-        return httpRequestLine.getRequestTarget();
+        return httpRequestLine.getRequestPath();
     }
 
     public String getHttpVersion() {

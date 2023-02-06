@@ -1,18 +1,38 @@
 package webserver;
 
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.springframework.http.HttpMethod;
 
 public class HttpRequestLine {
 
     private final HttpMethod httpMethod;
-    private final String requestTarget;
+    private final String requestPath;
+    private Map<String, String> queryParameters;
     private final String httpVersion;
 
     public HttpRequestLine(HttpMethod httpMethod, String requestTarget, String httpVersion) {
         this.httpMethod = httpMethod;
-        this.requestTarget = requestTarget;
+        this.requestPath = parseRequestPath(requestTarget);
+        this.queryParameters = parseQueryParameters(requestTarget);
         this.httpVersion = httpVersion;
+    }
+
+    private String parseRequestPath(String requestTarget) {
+        return requestTarget.split("\\?")[0];
+    }
+
+    private Map<String, String> parseQueryParameters(String requestTarget) {
+        Map<String, String> queryParameters = new HashMap<>();
+        if (requestTarget.contains("\\?")) {
+            String parameters = requestTarget.split("\\?")[1];
+            Arrays.stream(parameters.split("&"))
+                    .forEach((x) -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
+        };
+        return queryParameters;
     }
 
     public HttpRequestLine(String stringStartLine) {
@@ -24,7 +44,7 @@ public class HttpRequestLine {
         if (httpMethod == null) {
             throw new RuntimeException("올바른 HTTP Method Type이 아닙니다."); // Todo
         }
-        requestTarget = tokens[1].trim();
+        requestPath = tokens[1].trim();
         httpVersion = tokens[2].trim();
     }
 
@@ -32,8 +52,8 @@ public class HttpRequestLine {
         return httpMethod;
     }
 
-    public String getRequestTarget() {
-        return requestTarget;
+    public String getRequestPath() {
+        return requestPath;
     }
 
     public String getHttpVersion() {

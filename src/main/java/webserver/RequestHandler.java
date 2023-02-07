@@ -24,16 +24,17 @@ import org.springframework.http.HttpStatus;
 
 public class RequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+    private static final Map<String, String> mimeType = new HashMap<>();
 
-    private static final Map<String, String> mimeType = new HashMap<>(){{
-        put("html", "text/html");
-        put("css", "text/css");
-        put("js", "text/javascript");
-        put("ico" ,"image/vnd.microsoft.icon");
-        put("png" ,"image/png");
-        put("woff", "application/x-font-woff");
-        put("woff2", "application/x-font-woff2");
-    }};
+    static {
+        mimeType.put("html", "text/html");
+        mimeType.put("css", "text/css");
+        mimeType.put("js", "text/javascript");
+        mimeType.put("ico" ,"image/vnd.microsoft.icon");
+        mimeType.put("png" ,"image/png");
+        mimeType.put("woff", "application/x-font-woff");
+        mimeType.put("woff2", "application/x-font-woff2");
+    }
 
     private Socket connection;
 
@@ -51,20 +52,17 @@ public class RequestHandler implements Runnable {
             MyHttpRequest httpRequest = parseHttpRequest(bufferedReader);
 
             DataOutputStream dos = new DataOutputStream(out);
-
             MyHttpResponse response = execute(httpRequest);
             response.writeResponse(dos);
         } catch (IOException e) {
             logger.error(e.getMessage());
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
 
     private MyHttpResponse execute(MyHttpRequest request) throws IOException, URISyntaxException{
-//        byte[] body = "Hello world".getBytes();
-//        String typeOfBodyContent = "text/html";
         String requestTarget = request.getRequestPath();
 
         if (isFileRequestTarget(requestTarget)) {
@@ -98,9 +96,8 @@ public class RequestHandler implements Runnable {
         if (HttpMethod.POST.equals(request.getHttpMethod()) && "/user/create".equals(request.getRequestPath())) {
             String body = request.getBody();
             Map<String, String> queryParameters = new HashMap<>();
-
-            Arrays.stream(body.split("&")).forEach((x) -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
-
+            Arrays.stream(body.split("&"))
+                    .forEach(x -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
             DataBase.addUser(
                     new User(queryParameters.get("userId"),
                             queryParameters.get("password"),
@@ -111,16 +108,10 @@ public class RequestHandler implements Runnable {
             response.addHeader("Location", "/index.html");
             return response;
         }
-
         throw new IllegalArgumentException();
     }
 
     private static boolean isFileRequestTarget(String requestTarget) {
         return requestTarget.contains(".");
     }
-
-    private static boolean isNullOrEmpty(String line) {
-        return line == null || "".equals(line);
-    }
-
 }

@@ -54,7 +54,7 @@ public class MyHttpResponse {
         try {
             dos.writeBytes(line);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

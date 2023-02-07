@@ -1,11 +1,11 @@
 package utils;
 
+import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.http.HttpHeaders;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import webserver.HttpRequestLine;
 import webserver.MyHttpRequest;
 
@@ -18,6 +18,11 @@ public class IOUtils {
      * @return
      * @throws IOException
      */
+
+    private IOUtils() {
+        throw new IllegalAccessError();
+    }
+
     public static String readData(BufferedReader br, int contentLength) throws IOException {
         char[] body = new char[contentLength];
         br.read(body, 0, contentLength);
@@ -28,8 +33,8 @@ public class IOUtils {
         String line = bufferedReader.readLine();
         HttpRequestLine httpRequestLine = new HttpRequestLine(line);
         Map<String, String> headers = parseHttpHeaders(bufferedReader);
-        if (headers.containsKey("Content-Length")) {
-            int length = Integer.parseInt(headers.get("Content-Length"));
+        if (headers.containsKey(CONTENT_LENGTH)) {
+            int length = Integer.parseInt(headers.get(CONTENT_LENGTH));
             return new MyHttpRequest(httpRequestLine, headers, readData(bufferedReader, length));
         }
         return new MyHttpRequest(httpRequestLine, headers);

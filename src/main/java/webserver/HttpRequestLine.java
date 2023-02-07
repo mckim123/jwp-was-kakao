@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public class HttpRequestLine {
 
@@ -24,12 +23,12 @@ public class HttpRequestLine {
 
     public HttpRequestLine(String stringStartLine) {
         if (stringStartLine == null) {
-            throw new RuntimeException("null point error");
+            throw new IllegalArgumentException("null point error");
         }
         String[] tokens = stringStartLine.split(" ");
         httpMethod = HttpMethod.resolve(tokens[0]);
         if (httpMethod == null) {
-            throw new RuntimeException("올바른 HTTP Method Type이 아닙니다."); // Todo
+            throw new IllegalArgumentException("올바른 HTTP Method Type이 아닙니다.");
         }
         String requestUri = tokens[1].trim();
         requestPath = requestUri.split("\\?")[0];
@@ -42,8 +41,8 @@ public class HttpRequestLine {
         if (requestTarget.contains("?")) {
             String parameters = requestTarget.split("\\?")[1];
             Arrays.stream(parameters.split("&"))
-                    .forEach((x) -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
-        };
+                    .forEach(x -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
+        }
         return queryParameters;
     }
 

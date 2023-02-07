@@ -42,14 +42,11 @@ class RequestHandlerTest {
 
         final var socket = new StubSocket(httpRequest);
         final RequestHandler handler = new RequestHandler(socket);
-
         // when
         handler.run();
 
         // then
-
-
-        var expected = "HTTP/1.1 200 \r\n" +
+        var expected = "HTTP/1.1 200 OK \r\n" +
                 "Content-Type: text/html;charset=utf-8 \r\n" +
                 "Content-Length: 6902 \r\n" +
                 "\r\n" +
@@ -57,4 +54,5 @@ class RequestHandlerTest {
 
         assertThat(socket.output()).isEqualTo(expected);
     }
+
 }

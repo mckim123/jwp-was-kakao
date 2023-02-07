@@ -1,13 +1,12 @@
 package db;
 
-import java.util.HashMap;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import model.User;
 
 public class DataBase {
-
-    private static final Map<String, User> users = new HashMap<>();
+    private static final Map<String, User> users = new ConcurrentHashMap<>();
 
     private DataBase() {
         throw new IllegalAccessError();

@@ -1,16 +1,13 @@
 package webserver;
 
-import static utils.FileIoUtils.loadFileFromRequestTarget;
 import static utils.IOUtils.parseHttpRequest;
 
-import db.DataBase;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import model.User;
+import java.util.concurrent.ConcurrentHashMap;
+import myservlet.MyHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,21 +16,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 
 public class RequestHandler implements Runnable {
+    private static final String SERVLET_LOCATION_PREFIX = "myservlet.";
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
-    private static final Map<String, String> mimeType = new HashMap<>();
+
+    //실제 서블릿을 매핑
+    private static final Map<String, MyHttpServlet> servlets = new ConcurrentHashMap<>();
+
+    //서블릿 이름을 매핑
+    private static final Map<String, String> servletMappings = new ConcurrentHashMap<>();
 
     static {
-        mimeType.put("html", "text/html");
-        mimeType.put("css", "text/css");
-        mimeType.put("js", "text/javascript");
-        mimeType.put("ico" ,"image/vnd.microsoft.icon");
-        mimeType.put("png" ,"image/png");
-        mimeType.put("woff", "application/x-font-woff");
-        mimeType.put("woff2", "application/x-font-woff2");
+        servletMappings.put("/user", "UserServlet");
+        servletMappings.put("/user/create", "UserCreateServlet");
+        servletMappings.put("/", "DefaultServlet");
+    }
+
+    private static MyHttpServlet getInstanceOf(String servletName)
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        if (!servlets.containsKey(servletName)) {
+            MyHttpServlet servlet = (MyHttpServlet) Class.forName(SERVLET_LOCATION_PREFIX + servletName).getDeclaredConstructor().newInstance();
+            servlet.init();
+            servlets.put(servletName, servlet);
+        }
+        return servlets.get(servletName);
     }
 
     private Socket connection;
@@ -49,69 +56,34 @@ public class RequestHandler implements Runnable {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             InputStreamReader inputStreamReader = new InputStreamReader(in);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            MyHttpRequest httpRequest = parseHttpRequest(bufferedReader);
-
+            MyHttpRequest request = parseHttpRequest(bufferedReader);
             DataOutputStream dos = new DataOutputStream(out);
-            MyHttpResponse response = execute(httpRequest);
+            MyHttpResponse response = new MyHttpResponse();
+            service(request, response);
             response.writeResponse(dos);
         } catch (IOException e) {
             logger.error(e.getMessage());
-        } catch (URISyntaxException e) {
+        } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
-
-    private MyHttpResponse execute(MyHttpRequest request) throws IOException, URISyntaxException{
-        String requestTarget = request.getRequestPath();
-
-        if (isFileRequestTarget(requestTarget)) {
-            byte[] body = loadFileFromRequestTarget(requestTarget);
-            String[] splitTarget = requestTarget.split("\\.");
-            String typeOfBodyContent = mimeType.get(splitTarget[splitTarget.length - 1]);
-            MyHttpResponse response = new MyHttpResponse(HttpStatus.OK, body);
-            response.setContentType(typeOfBodyContent);
-            response.setContentLength(body.length);
-            return response;
-        }
-
-        if (HttpMethod.GET.equals(request.getHttpMethod()) && "/user/create".equals(request.getRequestPath())) {
-            Map<String, String> queryParameters = request.getQueryParameters();
-            DataBase.addUser(
-                    new User(queryParameters.get("userId"),
-                            queryParameters.get("password"),
-                            queryParameters.get("name"),
-                            queryParameters.get("email"))
-            );
-            return new MyHttpResponse(HttpStatus.CREATED);
-        }
-        if (HttpMethod.GET.equals(request.getHttpMethod()) && "/".equals(request.getRequestPath())) {
-            byte[] body = "Hello world".getBytes();
-            MyHttpResponse response = new MyHttpResponse(HttpStatus.OK, body);
-            response.setContentType("text/html");
-            response.setContentLength(body.length);
-            return response;
-        }
-
-        if (HttpMethod.POST.equals(request.getHttpMethod()) && "/user/create".equals(request.getRequestPath())) {
-            String body = request.getBody();
-            Map<String, String> queryParameters = new HashMap<>();
-            Arrays.stream(body.split("&"))
-                    .forEach(x -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
-            DataBase.addUser(
-                    new User(queryParameters.get("userId"),
-                            queryParameters.get("password"),
-                            queryParameters.get("name"),
-                            queryParameters.get("email"))
-            );
-            MyHttpResponse response = new MyHttpResponse(HttpStatus.FOUND);
-            response.addHeader("Location", "/index.html");
-            return response;
-        }
-        throw new IllegalArgumentException();
+    private void service(MyHttpRequest request, MyHttpResponse response)
+            throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        MyHttpServlet httpServlet = findServlet(request.getRequestPath());
+        httpServlet.service(request, response);
     }
 
-    private static boolean isFileRequestTarget(String requestTarget) {
+    private MyHttpServlet findServlet(String requestTarget)
+            throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (isRequestTargetFile(requestTarget)) {
+            return getInstanceOf("StaticFileServlet");
+        }
+        String servletName = servletMappings.get(requestTarget);
+        return getInstanceOf(servletName);
+    }
+
+    private static boolean isRequestTargetFile(String requestTarget) {
         return requestTarget.contains(".");
     }
 }

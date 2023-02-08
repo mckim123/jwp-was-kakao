@@ -34,7 +34,7 @@ public class MyHttpRequest {
         return body;
     }
 
-    public HttpMethod getHttpMethod() {
+    public HttpMethod getMethod() {
         return httpRequestLine.getHttpMethod();
     }
 

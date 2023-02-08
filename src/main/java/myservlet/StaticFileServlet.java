@@ -9,6 +9,7 @@ import webserver.MyHttpRequest;
 import webserver.MyHttpResponse;
 
 public class StaticFileServlet extends MyHttpServlet {
+
     @Override
     protected void doGet(MyHttpRequest request, MyHttpResponse response) throws IOException {
         String requestTarget = request.getRequestPath();

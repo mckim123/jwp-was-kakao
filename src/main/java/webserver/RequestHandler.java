@@ -28,9 +28,10 @@ public class RequestHandler implements Runnable {
     private static final Map<String, String> servletMappings = new ConcurrentHashMap<>();
 
     static {
-        servletMappings.put("/user", "UserServlet");
-        servletMappings.put("/user/create", "UserCreateServlet");
         servletMappings.put("/", "DefaultServlet");
+        servletMappings.put("/user", "UserServlet");
+        servletMappings.put("/user/login", "UserLoginServlet");
+        servletMappings.put("/user/create", "UserCreateServlet");
     }
 
     private static MyHttpServlet getInstanceOf(String servletName)

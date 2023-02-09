@@ -89,4 +89,8 @@ public class MyHttpResponse {
         setStatus(status);
         addHeader("message", msg);
     }
+
+    public String getJSessionId() {
+        return HttpCookie.parseCookie(headers.get("Set-Cookie")).getJSessionId();
+    }
 }

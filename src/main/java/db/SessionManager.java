@@ -1,4 +1,4 @@
-package session;
+package db;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,6 +6,7 @@ import java.util.Map;
 public class SessionManager {
 
     private static final Map<String, Session> SESSIONS = new HashMap<>();
+    private static SessionManager sessionManager;
 
     public void add(final Session session) {
         SESSIONS.put(session.getId(), session);
@@ -20,5 +21,12 @@ public class SessionManager {
     }
 
     private SessionManager() {
+    }
+
+    public static SessionManager getInstance() {
+        if (sessionManager == null) {
+            sessionManager = new SessionManager();
+        }
+        return sessionManager;
     }
 }

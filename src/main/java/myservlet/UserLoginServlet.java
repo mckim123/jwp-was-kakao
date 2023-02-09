@@ -1,15 +1,15 @@
 package myservlet;
 
 import db.DataBase;
+import db.Session;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import model.User;
 import org.springframework.http.HttpStatus;
 import utils.StringUtils;
 import webserver.MyHttpRequest;
 import webserver.MyHttpResponse;
+import webserver.RequestHandler;
 
 public class UserLoginServlet extends MyHttpServlet {
 
@@ -23,6 +23,8 @@ public class UserLoginServlet extends MyHttpServlet {
         } else {
             response.setStatus(HttpStatus.FOUND);
             response.addHeader("Location", "/index.html");
+            Session session = findSession(request, response);
+            session.setAttribute("User", user);
         }
     }
 }

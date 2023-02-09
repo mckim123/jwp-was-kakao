@@ -1,10 +1,12 @@
 package myservlet;
 
+import db.Session;
 import java.io.IOException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import webserver.MyHttpRequest;
 import webserver.MyHttpResponse;
+import webserver.RequestHandler;
 
 public abstract class MyHttpServlet implements MyServlet {
 
@@ -62,4 +64,17 @@ public abstract class MyHttpServlet implements MyServlet {
     public void destroy() {
         // NOOP by default
     }
+
+    protected Session findSession(MyHttpRequest request, MyHttpResponse response) {
+        return RequestHandler.sessionManager.findSession(findJSessionId(request, response));
+    }
+
+    protected String findJSessionId(MyHttpRequest request, MyHttpResponse response) {
+        try {
+            return request.getJSessionId();
+        } catch (NullPointerException e) {
+            return response.getJSessionId();
+        }
+    }
+
 }

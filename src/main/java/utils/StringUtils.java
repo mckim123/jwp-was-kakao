@@ -24,4 +24,11 @@ public class StringUtils {
                 .forEach(x -> map.put(x.split(delim2)[0], x.split(delim2)[1]));
         return map;
     }
+
+    public static Map<String, String> stringToMapWithTrim(String str, String delim1, String delim2) {
+        Map<String, String> map = new HashMap<>();
+        Arrays.stream(str.split(delim1))
+                .forEach(x -> map.put(x.split(delim2)[0].trim(), x.split(delim2)[1].trim()));
+        return map;
+    }
 }

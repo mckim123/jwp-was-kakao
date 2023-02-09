@@ -17,11 +17,11 @@ public class FileIoUtils {
         return Files.readAllBytes(path);
     }
 
-    public static byte[] loadFileFromRequestTarget(String requestTarget) throws IOException, URISyntaxException {
+    public static boolean isFileExisting(String filePath) {
         try {
-            return loadFileFromClasspath("./templates" + requestTarget);
-        } catch (NullPointerException e) {
-            return loadFileFromClasspath("./static" + requestTarget);
+            return Files.exists(Paths.get(FileIoUtils.class.getClassLoader().getResource(filePath).toURI()));
+        } catch (NullPointerException | URISyntaxException e) {
+            return false;
         }
     }
 }

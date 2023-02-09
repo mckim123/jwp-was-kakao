@@ -1,6 +1,6 @@
 package myservlet;
 
-import static utils.FileIoUtils.loadFileFromRequestTarget;
+import static utils.FileIoUtils.loadFileFromClasspath;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -14,7 +14,7 @@ public class StaticFileServlet extends MyHttpServlet {
     protected void doGet(MyHttpRequest request, MyHttpResponse response) throws IOException {
         String requestTarget = request.getRequestPath();
         try {
-            byte[] body = loadFileFromRequestTarget(requestTarget);
+            byte[] body = loadFileFromClasspath("./static" + requestTarget);
             String[] splitTarget = requestTarget.split("\\.");
             String fileExtension = splitTarget[splitTarget.length - 1];
             response.setStatus(HttpStatus.OK);

@@ -18,7 +18,7 @@ public class UserLoginServlet extends MyHttpServlet {
         Map<String, String> parameters = StringUtils.stringToMap(request.getBody());
         User user = DataBase.findUserById(parameters.get("userId"));
         if (user == null || !user.doesPasswordMatch(parameters.get("password"))) {
-            response.setStatus(HttpStatus.TEMPORARY_REDIRECT);
+            response.setStatus(HttpStatus.FOUND);
             response.addHeader("Location", "/user/login_failed.html");
         } else {
             response.setStatus(HttpStatus.FOUND);

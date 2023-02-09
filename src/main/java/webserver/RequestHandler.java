@@ -7,6 +7,10 @@ import db.SessionManager;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import utils.StringUtils;
+import utils.FileIoUtils;
 
 public class RequestHandler implements Runnable {
     private static final String SERVLET_LOCATION_PREFIX = "myservlet.";
@@ -59,13 +63,14 @@ public class RequestHandler implements Runnable {
             response.writeResponse(dos);
         } catch (IOException e) {
             logger.error(e.getMessage());
-        } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+        } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
+                 IllegalAccessException | URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
     private void service(MyHttpRequest request, MyHttpResponse response)
-            throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+            throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, URISyntaxException {
         handleCookie(request, response);
         MyHttpServlet httpServlet = findServlet(request.getRequestPath());
         httpServlet.service(request, response);
@@ -83,12 +88,25 @@ public class RequestHandler implements Runnable {
     }
 
     private MyHttpServlet findServlet(String requestTarget)
-            throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+            throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, URISyntaxException {
         if (isRequestTargetFileType(requestTarget)) {
-            return getInstanceOf("StaticFileServlet");
+            return getInstanceOf(getServletNameOfFile(requestTarget));
         }
         String servletName = servletMappings.get(requestTarget);
         return getInstanceOf(servletName);
+    }
+
+    private String getServletNameOfFile(String requestTarget) throws URISyntaxException {
+        if (FileIoUtils.isFileExisting("./static" + requestTarget)) {
+            return "StaticFileServlet";
+        }
+        if (FileIoUtils.isFileExisting("./templates" + requestTarget)) {
+            return "TemplateFileServlet";
+        }
+        System.out.println(Files.exists(Paths.get("./templates/user/login.html")));
+        System.out.println(Files.exists(Paths.get("./templates/user/login.html")));
+        System.out.println("resources/templates" + requestTarget);
+        throw new IllegalArgumentException(requestTarget);
     }
 
     private static MyHttpServlet getInstanceOf(String servletName)

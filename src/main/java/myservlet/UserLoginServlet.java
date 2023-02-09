@@ -21,10 +21,10 @@ public class UserLoginServlet extends MyHttpServlet {
             response.setStatus(HttpStatus.FOUND);
             response.addHeader("Location", "/user/login_failed.html");
         } else {
-            response.setStatus(HttpStatus.FOUND);
-            response.addHeader("Location", "/index.html");
             Session session = findSession(request, response);
             session.setAttribute("User", user);
+            response.setStatus(HttpStatus.FOUND);
+            response.addHeader("Location", "/index.html");
         }
     }
 }

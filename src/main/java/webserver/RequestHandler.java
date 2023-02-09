@@ -8,10 +8,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import myservlet.MyHttpServlet;
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import org.springframework.http.HttpStatus;
 import utils.FileIoUtils;
 
 public class RequestHandler implements Runnable {
@@ -35,12 +36,22 @@ public class RequestHandler implements Runnable {
 
     //서블릿 이름을 매핑
     private static final Map<String, String> servletMappings = new ConcurrentHashMap<>();
+    private static final Set<String> loginExcluded = new HashSet<>();
+    private static final Set<String> loginRequired = new HashSet<>();
 
     static {
         servletMappings.put("/", "DefaultServlet");
         servletMappings.put("/user/login", "UserLoginServlet");
         servletMappings.put("/user/create", "UserCreateServlet");
         servletMappings.put("/user/list", "UserListServlet");
+
+        loginExcluded.add("/user/login.html");
+        loginExcluded.add("/user/login_failed.html");
+        loginExcluded.add("/user/form.html");
+
+        loginRequired.add("/user/list.html");
+        loginRequired.add("/user/list");
+        loginRequired.add("/user/profile.html");
     }
 
     private Socket connection;
@@ -72,6 +83,10 @@ public class RequestHandler implements Runnable {
     private void service(MyHttpRequest request, MyHttpResponse response)
             throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, URISyntaxException {
         handleCookie(request, response);
+        validateAuthentication(request, response);
+        if (response.isStatusAssigned()) {
+            return;
+        }
         MyHttpServlet httpServlet = findServlet(request.getRequestPath());
         httpServlet.service(request, response);
     }
@@ -85,6 +100,50 @@ public class RequestHandler implements Runnable {
             sessionManager.add(new Session(uuid.toString()));
         }
         httpCookie.validatePath(request.getRequestPath());
+    }
+
+    private void validateAuthentication(MyHttpRequest request, MyHttpResponse response) {
+        if (!isUserLoggedIn(request, response) && isLoginRequired(request.getRequestPath())) {
+            redirectToLoginPage(response);
+        }
+        if (isUserLoggedIn(request, response) && isLoginExcluded(request.getRequestPath())) {
+            redirectToIndexPage(response);
+        }
+    }
+
+    private boolean isLoginExcluded(String requestPath) {
+        return loginExcluded.contains(requestPath);
+    }
+
+    private boolean isLoginRequired(String requestPath) {
+        return loginRequired.contains(requestPath);
+    }
+
+    private void redirectToIndexPage(MyHttpResponse response) {
+        response.setStatus(HttpStatus.SEE_OTHER);
+        response.addHeader("Location", "/index.html");
+    }
+
+    private void redirectToLoginPage(MyHttpResponse response) {
+        response.setStatus(HttpStatus.SEE_OTHER);
+        response.addHeader("Location", "/user/login.html");
+    }
+
+    private boolean isUserLoggedIn(MyHttpRequest request, MyHttpResponse response) {
+        try {
+            Session session = sessionManager.findSession(findJSessionId(request, response));
+            return !Objects.isNull(session.getAttribute("User"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String findJSessionId(MyHttpRequest request, MyHttpResponse response) {
+        try {
+            return request.getJSessionId();
+        } catch (NullPointerException e) {
+            return response.getJSessionId();
+        }
     }
 
     private MyHttpServlet findServlet(String requestTarget)
@@ -103,16 +162,14 @@ public class RequestHandler implements Runnable {
         if (FileIoUtils.isFileExisting("./templates" + requestTarget)) {
             return "TemplateFileServlet";
         }
-        System.out.println(Files.exists(Paths.get("./templates/user/login.html")));
-        System.out.println(Files.exists(Paths.get("./templates/user/login.html")));
-        System.out.println("resources/templates" + requestTarget);
         throw new IllegalArgumentException(requestTarget);
     }
 
     private static MyHttpServlet getInstanceOf(String servletName)
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (!servlets.containsKey(servletName)) {
-            MyHttpServlet servlet = (MyHttpServlet) Class.forName(SERVLET_LOCATION_PREFIX + servletName).getDeclaredConstructor().newInstance();
+            MyHttpServlet servlet = (MyHttpServlet) Class.forName(SERVLET_LOCATION_PREFIX + servletName)
+                    .getDeclaredConstructor().newInstance();
             servlet.init();
             servlets.put(servletName, servlet);
         }

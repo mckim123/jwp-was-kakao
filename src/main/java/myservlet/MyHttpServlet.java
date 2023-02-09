@@ -76,5 +76,4 @@ public abstract class MyHttpServlet implements MyServlet {
             return response.getJSessionId();
         }
     }
-
 }

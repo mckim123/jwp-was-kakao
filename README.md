@@ -64,7 +64,7 @@ userId=cu&password=password&name=%EC%9D%B4%EB%8F%99%EA%B7%9C&email=brainbackdoor
 
   
 ## 2단계
-- [ ] 로그인 기능 구현
+- [x] 로그인 기능 구현
   - [x] 회원가입한 사용자로만 로그인할 수 있어야 한다.
   - [x] 로그인이 성공하면 index.html로 이동한다.
   - [x] 로그인이 실패하면 /user/login_failed.html로 이동해야 한다.
@@ -72,12 +72,12 @@ userId=cu&password=password&name=%EC%9D%B4%EB%8F%99%EA%B7%9C&email=brainbackdoor
   - [x] Set-Cookie 설정시 모든 요청에 대해 Cookie 처리가 가능하도록 Path 설정 값을 /로 설정한다.
   - [x] 응답 header에 Set-Cookie값을 설정한 후 요청 header에 Cookie이 전달되는지 확인한다.
 
-- [ ] 템플릿 엔진 활용하기
-  - [ ] 접근하고 있는 사용자가 “로그인” 상태일 경우(Cookie 값이 logined=true) 경우 http://localhost:8080/user/list 로 접근했을 때 사용자 목록을 출력한다.
-  - [ ] 만약 로그인하지 않은 상태라면 로그인 페이지(login.html)로 이동한다. 
+- [x] 템플릿 엔진 활용하기
+  - [x] 접근하고 있는 사용자가 “로그인” 상태일 경우(Cookie 값이 logined=true) 경우 http://localhost:8080/user/list 로 접근했을 때 사용자 목록을 출력한다.
+  - [x] 만약 로그인하지 않은 상태라면 로그인 페이지(login.html)로 이동한다. 
   - [x] 동적으로 html을 생성하기 위해 handlebars.java template engine을 활용한다.
 
-- [ ] Session 구현하기
-  - [ ] 쿠키에서 전달 받은 JSESSIONID의 값으로 로그인 여부를 체크할 수 있어야 한다.
+- [x] Session 구현하기
+  - [x] 쿠키에서 전달 받은 JSESSIONID의 값으로 로그인 여부를 체크할 수 있어야 한다.
   - [x] 로그인에 성공하면 Session 객체의 값으로 User 객체를 저장해보자.
-  - [ ] 로그인된 상태에서 /user/login 페이지에 HTTP GET method로 접근하면 이미 로그인한 상태니 index.html 페이지로 리다이렉트 처리한다.
+  - [x] 로그인된 상태에서 /user/login 페이지에 HTTP GET method로 접근하면 이미 로그인한 상태니 index.html 페이지로 리다이렉트 처리한다.

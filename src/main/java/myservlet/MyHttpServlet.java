@@ -71,9 +71,9 @@ public abstract class MyHttpServlet implements MyServlet {
 
     protected String findJSessionId(MyHttpRequest request, MyHttpResponse response) {
         try {
-            return request.getJSessionId();
-        } catch (NullPointerException e) {
             return response.getJSessionId();
+        } catch (NullPointerException e) {
+            return request.getJSessionId();
         }
     }
 }

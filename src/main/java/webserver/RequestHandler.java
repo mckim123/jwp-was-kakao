@@ -93,7 +93,7 @@ public class RequestHandler implements Runnable {
 
     private void handleCookie(MyHttpRequest request, MyHttpResponse response) {
         HttpCookie httpCookie = request.getHttpCookie();
-        if (httpCookie == null) {
+        if (httpCookie == null || sessionManager.findSession(httpCookie.getJSessionId()) == null) {
             UUID uuid = UUID.randomUUID();
             httpCookie = new HttpCookie(uuid.toString());
             response.addHeader("Set-Cookie", httpCookie.toString());

@@ -9,25 +9,8 @@
    http://localhost:8080/index.html에 접근할 수 있도록 구현한다.
    RequestHandlerTest 테스트가 모두 통과하도록 구현한다.
 
-* HTTP Request Header 예
-```
-  GET /index.html HTTP/1.1
-  Host: localhost:8080
-  Connection: keep-alive
-  Accept: */*
-```
-
-
 - [x] CSS 지원하기
    인덱스 페이지에 접속하면, 현재 stylesheet 파일을 지원하지 못하고 있다. Stylesheet 파일을 지원하도록 구현하도록 한다.
-
-* HTTP Request Header 예
-```
-GET ./css/style.css HTTP/1.1
-Host: localhost:8080
-Accept: text/css,*/*;q=0.1
-Connection: keep-alive
-```
 
 
 - [x] Query String 파싱
@@ -38,26 +21,10 @@ Connection: keep-alive
 
 * HTTP Request Header 예
 
-```
-  GET /user/create?userId=cu&password=password&name=%EC%9D%B4%EB%8F%99%EA%B7%9C&email=brainbackdoor%40gmail.com HTTP/1.1
-  Host: localhost:8080
-  Connection: keep-alive
-  Accept: */*
-```
 
 
 - [x] POST 방식으로 회원가입
    http://localhost:8080/user/form.html 파일의 form 태그 method를 get에서 post로 수정한 후 회원가입 기능이 정상적으로 동작하도록 구현한다.
-* HTTP Request Header 예
-```  POST /user/create HTTP/1.1
-  Host: localhost:8080
-  Connection: keep-alive
-  Content-Length: 59
-  Content-Type: application/x-www-form-urlencoded
-  Accept: */*
-
-userId=cu&password=password&name=%EC%9D%B4%EB%8F%99%EA%B7%9C&email=brainbackdoor%40gmail.com
-```
 
 - [x] Redirect
    현재는 “회원가입”을 완료 후, URL이 /user/create 로 유지되는 상태로 읽어서 전달할 파일이 없다. redirect 방식처럼 회원가입을 완료한 후 index.html로 이동해야 한다.

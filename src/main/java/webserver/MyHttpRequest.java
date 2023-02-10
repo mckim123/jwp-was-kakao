@@ -34,12 +34,21 @@ public class MyHttpRequest {
         return body;
     }
 
-    public HttpMethod getHttpMethod() {
+    public HttpMethod getMethod() {
         return httpRequestLine.getHttpMethod();
     }
 
     public String getRequestPath() {
         return httpRequestLine.getRequestPath();
+    }
+
+    public HttpCookie getHttpCookie() {
+        String cookieString = headers.get("Cookie");
+        return HttpCookie.parseCookie(cookieString);
+    }
+
+    public String getJSessionId() throws NullPointerException {
+        return getHttpCookie().getJSessionId();
     }
 
     public String getHttpVersion() {

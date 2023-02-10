@@ -1,16 +1,15 @@
 package webserver;
 
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpMethod;
+import utils.StringUtils;
 
 public class HttpRequestLine {
 
     private final HttpMethod httpMethod;
     private final String requestPath;
-
     private final Map<String, String> queryParameters;
     private final String httpVersion;
 
@@ -40,12 +39,10 @@ public class HttpRequestLine {
         Map<String, String> queryParameters = new HashMap<>();
         if (requestTarget.contains("?")) {
             String parameters = requestTarget.split("\\?")[1];
-            Arrays.stream(parameters.split("&"))
-                    .forEach(x -> queryParameters.put(x.split("=")[0], x.split("=")[1]));
+            queryParameters = StringUtils.stringToMap(parameters);
         }
         return queryParameters;
     }
-
 
     public HttpMethod getHttpMethod() {
         return httpMethod;

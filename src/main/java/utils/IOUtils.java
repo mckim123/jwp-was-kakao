@@ -43,15 +43,11 @@ public class IOUtils {
     private static Map<String, String> parseHttpHeaders(BufferedReader bufferedReader) throws IOException {
         String line = bufferedReader.readLine();
         Map<String, String> headers = new HashMap<>();
-        while (!isNullOrEmpty(line)) {
+        while (!StringUtils.isEmpty(line)) {
             String[] tokens = line.split(":");
             headers.put(tokens[0], tokens[1].trim());
             line = bufferedReader.readLine();
         }
         return headers;
-    }
-
-    private static boolean isNullOrEmpty(String line) {
-        return line == null || "".equals(line);
     }
 }

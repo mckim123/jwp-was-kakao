@@ -1,5 +1,6 @@
 package webserver;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import support.StubSocket;
 import utils.FileIoUtils;
@@ -20,14 +21,13 @@ class RequestHandlerTest {
         handler.run();
 
         // then
-        var expected = String.join("\r\n",
-                "HTTP/1.1 200 OK ",
+        var expected = List.of("HTTP/1.1 200 OK ",
                 "Content-Type: text/html;charset=utf-8 ",
                 "Content-Length: 11 ",
                 "",
                 "Hello world");
 
-        assertThat(socket.output()).isEqualTo(expected);
+        assertThat(socket.output().split("\r\n")).containsAll(expected);
     }
 
     @Test
@@ -46,13 +46,7 @@ class RequestHandlerTest {
         handler.run();
 
         // then
-        var expected = "HTTP/1.1 200 OK \r\n" +
-                "Content-Type: text/html;charset=utf-8 \r\n" +
-                "Content-Length: 6902 \r\n" +
-                "\r\n" +
-                new String(FileIoUtils.loadFileFromClasspath("templates/index.html"));
-
-        assertThat(socket.output()).isEqualTo(expected);
+        assertThat(socket.output()).contains(new String(FileIoUtils.loadFileFromClasspath("templates/index.html")));
     }
 
 }

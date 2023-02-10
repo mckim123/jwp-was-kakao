@@ -29,7 +29,7 @@ import utils.FileIoUtils;
 public class RequestHandler implements Runnable {
     private static final String SERVLET_LOCATION_PREFIX = "myservlet.";
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
-    public static SessionManager sessionManager = SessionManager.getInstance();
+    private final SessionManager sessionManager = SessionManager.getInstance();
 
     //실제 서블릿을 매핑
     private static final Map<String, MyHttpServlet> servlets = new ConcurrentHashMap<>();

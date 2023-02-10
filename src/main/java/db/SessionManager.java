@@ -6,7 +6,7 @@ import java.util.Map;
 public class SessionManager {
 
     private static final Map<String, Session> SESSIONS = new HashMap<>();
-    private static SessionManager sessionManager;
+    private static SessionManager instance;
 
     public void add(final Session session) {
         SESSIONS.put(session.getId(), session);
@@ -23,10 +23,10 @@ public class SessionManager {
     private SessionManager() {
     }
 
-    public static SessionManager getInstance() {
-        if (sessionManager == null) {
-            sessionManager = new SessionManager();
+    public static synchronized SessionManager getInstance() {
+        if (instance == null) {
+            instance = new SessionManager();
         }
-        return sessionManager;
+        return instance;
     }
 }

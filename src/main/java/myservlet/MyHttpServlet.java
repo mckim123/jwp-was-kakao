@@ -1,6 +1,7 @@
 package myservlet;
 
 import db.Session;
+import db.SessionManager;
 import java.io.IOException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -66,7 +67,7 @@ public abstract class MyHttpServlet implements MyServlet {
     }
 
     protected Session findSession(MyHttpRequest request, MyHttpResponse response) {
-        return RequestHandler.sessionManager.findSession(findJSessionId(request, response));
+        return SessionManager.getInstance().findSession(findJSessionId(request, response));
     }
 
     protected String findJSessionId(MyHttpRequest request, MyHttpResponse response) {
